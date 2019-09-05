@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 /*
@@ -18,11 +19,63 @@ search_back(string, string::iterator), returns int
 */
 
 int search_back(string& s, string::iterator cursor_pos);
+bool parse_args(int arg_count, char* args[]);
+void init_terminal();
+void quit_program();
 
 int main(int argc, char* argv[]) {
 
+	if(parse_args(argc,argv)) init_terminal();
+	quit_program();
+	return 0;
+}
+
+int search_back(string& s, string::iterator cursor_pos) {
 	/*
-			****VARIABLES IN FUNCTION main()****
+			****VARIABLES IN FUNCTION search_back(string, string::iterator)****
+		col_num (int): the return value, used as a counter for the number of columns until the beginning of the string or the last newline ('\n') character is found
+		cursor_pos(string::iterator, argument) - the current cursor position of the file_buf string in main()
+		s (string&, argument) - the file_buf string itself
+
+	-
+
+	*/
+	int col_num = 0;
+	while(cursor_pos != s.begin() && *cursor_pos != '\n') {		//Continue the loop as long as a newline or the string's beginning is not found
+		cursor_pos--;						//Move the file_buf cursor backwards one character
+		col_num++;						//Increment the column counter
+	}
+	cursor_pos = s.end();						//Reset the cursor position to the end (TO DO: Change this to allow editing in the middle of the file)
+	return col_num;							//Return the column number
+}
+
+
+//Still need to fix this so the arguments actually get parsed properly.
+bool parse_args(int arg_count, char* args[]) {
+	if(arg_count == 1) {							//User only started the program with no args, so return
+		return true;
+	}
+	else if(arg_count > 1) {							//User entered more than one argument, so we'll parse the arguments
+		for(int i = 1; i>arg_count; i++) {
+			if(args[i] == "--help" || "-h") {				//The problem seems to be here, it doesn't recognize the arguments for some reason
+				cout << "TX Text Editor Commands and Usage: \n";
+				cout << "\tUsage: ./tx [args] [filename]\n";
+				cout << "\t--help -h: Show this help message and quit.\n";
+				cout << "\t--hide-gui -H: Hide the GUI.\n";
+				return false;
+			}
+			else if(args[i] == "--hide-gui" || "-H") {
+				//TO DO: Implement a way to hide the GUI in main() *maybe an object?
+			}
+		}
+
+	}
+}
+
+void init_terminal() {
+
+	/*
+			****VARIABLES IN FUNCTION init_terminal()****
 		main_window (WINDOW*): the main window (initialized to NULL)
 		num_cols (int): the maximum number of columns
 		num_rows (int): the maximum number of rows
@@ -35,7 +88,7 @@ int main(int argc, char* argv[]) {
 	*/
 
 	WINDOW* main_window = NULL;
-	int num_cols = 0, num_rows = 0, row = 0, col = 0;
+	int num_cols = 0, num_rows = 0, row = 1, col = 0;
 	char input = NULL;
 	bool quit = false;
 	string file_buf = "";
@@ -52,11 +105,20 @@ int main(int argc, char* argv[]) {
 
 	//BEGIN PROGRAM LOGIC:
 
+	start_color();
+	init_pair(1, COLOR_BLACK, COLOR_WHITE);		//Inverted color setting
+	init_pair(2, COLOR_WHITE, COLOR_BLACK);		//Normal color setting
+
+	attron(COLOR_PAIR(1));
+	mvaddstr(0,0,"TX Text Editor v0.1");
+	mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");
+	attroff(COLOR_PAIR(1));
+
 	while(!quit) {
 		input = getch();
 		if(input == 7) {						//7 is the backspace character defined on this machine
 			if(col > 0) col--;					//Ensures that the column number does not go below 0.
-			else if(col == 0 && row > 0) {				//If the beginning of a row is reached, go to the row above it(if available)
+			else if(col == 0 && row > 1) {				//If the beginning of a row is reached, go to the row above it(if available)
 										//TO DO: Fix this so that it goes to the last column of that row.
 				row--;						//Go backwards one row
 				file_buf.pop_back();				//Remove the last character from the file buffer
@@ -88,25 +150,11 @@ int main(int argc, char* argv[]) {
 
 	//Magic to quit the program
 	input = getch();
-	endwin();
-	return 0;
+	quit_program();
+	return;
 }
 
-int search_back(string& s, string::iterator cursor_pos) {
-	/*
-			****VARIABLES IN FUNCTION search_back(string, string::iterator)****
-		col_num (int): the return value, used as a counter for the number of columns until the beginning of the string or the last newline ('\n') character is found
-		cursor_pos(string::iterator, argument) - the current cursor position of the file_buf string in main()
-		s (string&, argument) - the file_buf string itself
-
-	-
-
-	*/
-	int col_num = 0;
-	while(cursor_pos != s.begin() && *cursor_pos != '\n') {		//Continue the loop as long as a newline or the string's beginning is not found
-		cursor_pos--;						//Move the file_buf cursor backwards one character
-		col_num++;						//Increment the column counter
-	}
-	cursor_pos = s.end();						//Reset the cursor position to the end (TO DO: Change this to allow editing in the middle of the file)
-	return col_num;							//Return the column number
+void quit_program() {
+	endwin();
+	return;
 }
