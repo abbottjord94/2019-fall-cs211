@@ -4,7 +4,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <vector>
 
 using namespace std;
 /*
@@ -12,10 +11,20 @@ using namespace std;
 		****FUNCTIONS****
 main(int, char**), returns int:
 	-main function for the program
+	-only parses the arguments and initializes the screen
 
 search_back(string, string::iterator), returns int
 	-used to search a string backwards for either the string's beginning or the last newline ('\n') character.
 	-returns the number of characters from the iterator argument's position to the next newline or the beginning of the string
+
+init_terminal(), void function:
+	-initializes the terminal and handles the text editor
+
+parse_args(int, char**), returns bool:
+	-parses the arguments
+
+quit_program(), void function:
+	-quits the program
 */
 
 int search_back(string& s, string::iterator cursor_pos);
@@ -96,22 +105,22 @@ void init_terminal() {
 
 	//This is where the magic happens
 
-	main_window = initscr(); 			//initialize screen to main window
-	getmaxyx(main_window, num_rows, num_cols); 	//get the max X and Y values in the terminal
-	resize_term(num_rows - 1, num_cols - 1); 	//resize the terminal
-	noecho(); 					//disable character echo
+	main_window = initscr(); 					//initialize screen to main window
+	getmaxyx(main_window, num_rows, num_cols); 			//get the max X and Y values in the terminal
+	resize_term(num_rows - 1, num_cols - 1); 			//resize the terminal
+	noecho(); 							//disable character echo
 	keypad(main_window, TRUE);
-	curs_set(TRUE);	 				//Show the cursor
+	curs_set(TRUE);	 						//Show the cursor
 
 	//BEGIN PROGRAM LOGIC:
 
 	start_color();
-	init_pair(1, COLOR_BLACK, COLOR_WHITE);		//Inverted color setting
-	init_pair(2, COLOR_WHITE, COLOR_BLACK);		//Normal color setting
+	init_pair(1, COLOR_BLACK, COLOR_WHITE);				//Inverted color setting
+	init_pair(2, COLOR_WHITE, COLOR_BLACK);				//Normal color setting
 
-	attron(COLOR_PAIR(1));
-	mvaddstr(0,0,"TX Text Editor v0.1");
-	mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");
+	attron(COLOR_PAIR(1));						//GUI Stuff
+	mvaddstr(0,0,"TX Text Editor v0.1\tFile: <none>");		//Title and filename at the top
+	mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");		//Short list of commands at the bottom
 	attroff(COLOR_PAIR(1));
 
 	while(!quit) {
