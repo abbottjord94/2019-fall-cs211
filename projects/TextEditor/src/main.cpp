@@ -120,27 +120,6 @@ void init_terminal(vector<string> args) {
 			}
 		}
 		filename = args.back();							//We assume the filename is the last argument the user gave
-		ifstream infile(filename);						//Now we'll check for that file and try to open it in the editor
-		if(infile) {
-			while(infile.good()) {						//Checking to make sure we aren't at the end of the file
-				string line;
-				getline(infile, line);					//get the next line from the input file and store it in the temporary "line" variable
-				document.push_back(line);				//Push the line into the document vector.
-			}
-			if(document.size() > num_rows) {				//We only want to render as many characters as we have space for, so we'll check the boundaries.
-				for(int i=1; i<num_rows; i++) {
-					for(int j=0; j<document[i].length(); j++) {
-						mvaddch(i,j,document[i][j]);
-					}
-				}
-			} else {
-				for(int i=1; i<document.size(); i++) {			//If the document is smaller than the screen, we'll just render the whole thing.
-					for(int j=0; j<document[i].length(); j++) {
-						mvaddch(i,j,document[i][j]);
-					}
-				}
-			}
-		}
 	}
 
 	//This is where the magic happens
@@ -163,8 +142,32 @@ void init_terminal(vector<string> args) {
 	mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");		//Short list of commands at the bottom
 	attroff(COLOR_PAIR(1));
 	refresh();
-	document.push_back(string());					//Used as a buffer since the title will take one row - this way, we won't need to offset the row variable later
-	document.push_back(string());
+
+	ifstream infile(filename);						//Now we'll check for that file and try to open it in the editor
+	if(infile) {
+		while(infile.good()) {						//Checking to make sure we aren't at the end of the file
+			string line;
+			getline(infile, line);					//get the next line from the input file and store it in the temporary "line" variable
+			document.push_back(line);				//Push the line into the document vector.
+		}
+		if(document.size() > num_rows) {				//We only want to render as many characters as we have space for, so we'll check the boundaries.
+			for(int i=1; i<num_rows; i++) {
+				for(int j=0; j<document[i].length(); j++) {
+					mvaddch(i,j,document[i][j]);
+				}
+			}
+		} else {
+			for(int i=1; i<document.size(); i++) {			//If the document is smaller than the screen, we'll just render the whole thing.
+				for(int j=0; j<document[i].length(); j++) {
+					mvaddch(i,j,document[i][j]);
+				}
+			}
+		}
+	}
+	else {
+		document.push_back(string());					//Used as a buffer since the title will take one row - this way, we won't need to offset the row variable later
+		document.push_back(string());
+	}
 	while(!quit) {
 		input = getch();
 		if(input == 7) {						//7 is the backspace character defined on this machine
