@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 /*
@@ -12,10 +13,6 @@ using namespace std;
 main(int, char**), returns int:
 	-main function for the program
 	-only parses the arguments and initializes the screen
-
-search_back(string, string::iterator), returns int
-	-used to search a string backwards for either the string's beginning or the last newline ('\n') character.
-	-returns the number of characters from the iterator argument's position to the next newline or the beginning of the string
 
 init_terminal(), void function:
 	-initializes the terminal and handles the text editor
@@ -27,40 +24,29 @@ quit_program(), void function:
 	-quits the program
 */
 
-int search_back(string& s, string::iterator cursor_pos);
 bool parse_args(int arg_count, char* args[]);
-void init_terminal();
+void init_terminal(string filename);
 void quit_program();
 
+//Main function
 int main(int argc, char* argv[]) {
 
-	if(parse_args(argc,argv)) init_terminal();
+	string fname = argv[1];
+	if(parse_args(argc,argv)) init_terminal(fname);
 	quit_program();
 	return 0;
 }
 
-int search_back(string& s, string::iterator cursor_pos) {
-	/*
-			****VARIABLES IN FUNCTION search_back(string, string::iterator)****
-		col_num (int): the return value, used as a counter for the number of columns until the beginning of the string or the last newline ('\n') character is found
-		cursor_pos(string::iterator, argument) - the current cursor position of the file_buf string in main()
-		s (string&, argument) - the file_buf string itself
-
-	-
-
-	*/
-	int col_num = 0;
-	while(cursor_pos != s.begin() && *cursor_pos != '\n') {		//Continue the loop as long as a newline or the string's beginning is not found
-		cursor_pos--;						//Move the file_buf cursor backwards one character
-		col_num++;						//Increment the column counter
-	}
-	cursor_pos = s.end();						//Reset the cursor position to the end (TO DO: Change this to allow editing in the middle of the file)
-	return col_num;							//Return the column number
-}
-
-
 //Still need to fix this so the arguments actually get parsed properly.
 bool parse_args(int arg_count, char* args[]) {
+/*
+		****VARIABLES IN FUNCTION parse_args()****
+
+	-arg_count (int): the number of arguments.
+	-args (char**): the arguments themselves
+*/
+
+
 	if(arg_count == 1) {							//User only started the program with no args, so return
 		return true;
 	}
@@ -74,14 +60,14 @@ bool parse_args(int arg_count, char* args[]) {
 				return false;
 			}
 			else if(args[i] == "--hide-gui" || "-H") {
-				//TO DO: Implement a way to hide the GUI in main() *maybe an object?
+				//TO DO: Implement a way to hide the GUI in main(). Maybe an object?
 			}
 		}
 
 	}
 }
 
-void init_terminal() {
+void init_terminal(string filename) {
 
 	/*
 			****VARIABLES IN FUNCTION init_terminal()****
@@ -101,7 +87,8 @@ void init_terminal() {
 	char input = NULL;
 	bool quit = false;
 	string file_buf = "";
-	string::iterator file_buf_cursor = file_buf.begin();
+	//string title = "TX Text Editor v0.1\tFile: " + filename;
+	vector<string> document;
 
 	//This is where the magic happens
 
@@ -119,38 +106,58 @@ void init_terminal() {
 	init_pair(2, COLOR_WHITE, COLOR_BLACK);				//Normal color setting
 
 	attron(COLOR_PAIR(1));						//GUI Stuff
-	mvaddstr(0,0,"TX Text Editor v0.1\tFile: <none>");		//Title and filename at the top
+	mvaddstr(0,0,"TX Text Editor v0.1");				//Title at the top (add filename here at some point)
 	mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");		//Short list of commands at the bottom
 	attroff(COLOR_PAIR(1));
-
+	refresh();
+	document.push_back(string());					//Used as a buffer since the title will take one row - this way, we won't need to offset the row variable later
+	document.push_back(string());
 	while(!quit) {
 		input = getch();
 		if(input == 7) {						//7 is the backspace character defined on this machine
+
 			if(col > 0) col--;					//Ensures that the column number does not go below 0.
+
+			//if(document[row][col-4] == '\t') {			//More tab handling stuff
+			//	document[row].pop_back();
+			//	col -= 4;
+			//}
+
 			else if(col == 0 && row > 1) {				//If the beginning of a row is reached, go to the row above it(if available)
-										//TO DO: Fix this so that it goes to the last column of that row.
 				row--;						//Go backwards one row
-				file_buf.pop_back();				//Remove the last character from the file buffer
-				col = search_back(file_buf, file_buf_cursor);	//Use the search_back function to find what column the cursor needs to be set at.
+				col = document[row].length() - 1;		//Go to the end of the line, with an offset for the newline '\n' character.
 			}
-			if(!file_buf.empty()) {					//As long as the file buffer isn't empty (this caused some really funny Heartbleed-like errors before I implemented this)
-				file_buf.pop_back();				//Remove the last character from the file buffer
-				file_buf_cursor = file_buf.end();		//Set the file buffer cursor to the end of the file buffer (TO DO: Change this to allow editing in the middle of the file)
+			if(!document[row].empty()) {				//As long as the current line isn't empty (this caused some really funny Heartbleed-like errors before I implemented this)
+				document[row].pop_back();			//Remove the last character from the document
 			}
-			mvaddch(row,col,' ');					//Add a space character, this actually removes the last character from the terminal for some reason (this does not add the space to the file buffer)
+			mvdelch(row,col);					//Delete the character at this location
 		}
 		else if(input == 13 || input == 10) { 				//13 or 10 are the carriage return characters
+			document[row].push_back('\n');
 			row++;							//Moves to the next row
 			col = 0;						//Sets the column number to 0
-			file_buf += '\n';
+			document.push_back(string());
 			refresh();						//Redraw the screen
-			file_buf_cursor = file_buf.end();
+		}
+		else if(input == 9) {						//Handling tabs (needs work)
+			//document[row].push_back('\t');			//Push back the tab character
+			//mvaddstr(row,col,"    ");				//Add the tab character to the screen
+			//col+=4;
+			refresh();
+		}
+		else if(input == 15) {						//When the user presses Ctrl+O to save the file
+			ofstream outfile(filename);				//Create the output file stream
+			for(int i=1; i<document.size(); i++) {			//Loop through each line of the document
+				file_buf += document[i];			//Append the line to the file buffer
+			}
+			outfile << file_buf;					//Write the file buffer to the file output buffer
+			outfile.close();					//Close the file
 		}
 		else if(input != NULL) {
-			file_buf += input;					//Append the input character to the end of the file buffer
+			document[row].push_back(input);
 			mvaddch(row,col,input);					//For every other input, just print the character to the terminal and move to the next column.
-			col++;							//Move to the next column (this will need to be changed to handle columns above the maximum)
-			file_buf_cursor = file_buf.end();			//Move the file buffer cursor to the end (TO DO: Change this to allow editing in the middle of the file)
+			col++;							//Move to the next column
+			refresh();
 		}
 		refresh();							//Redraw everything
 	}
@@ -163,6 +170,8 @@ void init_terminal() {
 	return;
 }
 
+
+//Quits the program
 void quit_program() {
 	endwin();
 	return;
