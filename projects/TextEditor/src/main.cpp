@@ -209,6 +209,40 @@ void init_terminal(vector<string> args) {
 			outfile << file_buf;					//Write the file buffer to the file output buffer
 			outfile.close();					//Close the file
 		}
+		else if(input == 3) {						//Up arrow key
+			if(row > 1) {
+				row--;						//Move up one row
+				if(col > document[row].length()) {		//If the current column is greater than the current row's max column, set the column to the end of the line.
+					col = document[row].length();
+				}
+			}
+		}
+		else if(input == 4) {						//Left arrow key
+			if(col > 0) col--;					//Move back one column if possible
+			if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
+				row--;						//Same behavior as the up arrow key at this point.
+				if(col > document[row].length()) {
+					col = document[row].length();
+				}
+			}
+		}
+		else if(input == 2) {						//Down arrow key
+			if(row < document.size()) {
+				row++;						//Go down one row if we aren't on the last row of the document
+				if(col >= document[row].length()) {
+					col = document[row].length();
+				}
+			}
+		}
+		else if(input == 5) {						//Right arrow key
+			if(col < document[row].length()) {
+				col++;
+			}
+			if(col >= document[row].length()) {
+				row++;
+				col = 0;
+			}
+		}
 		else if(input != NULL) {
 			document[row].push_back(input);
 			mvaddch(row,col,input);					//For every other input, just print the character to the terminal and move to the next column.
