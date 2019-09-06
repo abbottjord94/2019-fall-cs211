@@ -1,3 +1,10 @@
+/*
+
+		****TX Text Editor****
+		version 0.1 (alpha
+
+*/
+
 #include "curses.h"
 #include <ctime>
 #include <cstdlib>
@@ -57,9 +64,9 @@ vector<string> parse_args(int arg_count, char* args[]) {
 	}
 	else {
 		for(int i=1; i<arg_count; i++) {
-			parsed_arguments.push_back(args[i]);
+			parsed_arguments.push_back(args[i]);			//We'll push back the arguments into a vector for later processing.
 		}
-		return parsed_arguments;
+		return parsed_arguments;					//And return that vector so they can be accessed.
 	}
 }
 
@@ -97,22 +104,43 @@ void init_terminal(vector<string> args) {
 	else {
 		for(int i=0; i<args.size(); i++) {
 			if(args[i].front() == '-') {
-				if(args[i] == "-h") {		//Checking for the help flag
+				if(args[i] == "-h") {					//Checking for the help flag
 					print_usage();
 					return;
 				}
-				else if(args[i] == "--help") {
+				else if(args[i] == "--help") {				//The same help flag, but different.
 					print_usage();
 					return;
 				}
-				else {
+				else {							//We found an undefined argument, so print the usage details and quit.
 					cout << "Invalid argument: " << args[i] << endl;
 					print_usage();
 					return;
 				}
 			}
 		}
-		filename = args.back();					//We assume the filename is the last argument the user gave
+		filename = args.back();							//We assume the filename is the last argument the user gave
+		ifstream infile(filename);						//Now we'll check for that file and try to open it in the editor
+		if(infile) {
+			while(infile.good()) {						//Checking to make sure we aren't at the end of the file
+				string line;
+				getline(infile, line);					//get the next line from the input file and store it in the temporary "line" variable
+				document.push_back(line);				//Push the line into the document vector.
+			}
+			if(document.size() > num_rows) {				//We only want to render as many characters as we have space for, so we'll check the boundaries.
+				for(int i=1; i<num_rows; i++) {
+					for(int j=0; j<document[i].length(); j++) {
+						mvaddch(i,j,document[i][j]);
+					}
+				}
+			} else {
+				for(int i=1; i<document.size(); i++) {			//If the document is smaller than the screen, we'll just render the whole thing.
+					for(int j=0; j<document[i].length(); j++) {
+						mvaddch(i,j,document[i][j]);
+					}
+				}
+			}
+		}
 	}
 
 	//This is where the magic happens
