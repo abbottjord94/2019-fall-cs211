@@ -24,50 +24,43 @@ quit_program(), void function:
 	-quits the program
 */
 
-bool parse_args(int arg_count, char* args[]);
-void init_terminal(string filename);
+vector<string> parse_args(int arg_count, char* args[]);
+void init_terminal(vector<string> args);
+void print_usage();
 void quit_program();
 
 //Main function
 int main(int argc, char* argv[]) {
 
-	string fname = argv[1];
-	if(parse_args(argc,argv)) init_terminal(fname);
+	init_terminal(parse_args(argc,argv));
 	quit_program();
 	return 0;
 }
 
 //Still need to fix this so the arguments actually get parsed properly.
-bool parse_args(int arg_count, char* args[]) {
+vector<string> parse_args(int arg_count, char* args[]) {
 /*
 		****VARIABLES IN FUNCTION parse_args()****
 
 	-arg_count (int): the number of arguments.
 	-args (char**): the arguments themselves
+	-parsed_arguments (vector<string>): the arguments placed into a vector
 */
 
+	vector<string> parsed_arguments;
 
-	if(arg_count == 1) {							//User only started the program with no args, so return
-		return true;
+	if(arg_count == 1) {							//User only started the program with no args, so return an empty vector
+		return parsed_arguments;
 	}
-	else if(arg_count > 1) {							//User entered more than one argument, so we'll parse the arguments
-		for(int i = 1; i>arg_count; i++) {
-			if(args[i] == "--help" || "-h") {				//The problem seems to be here, it doesn't recognize the arguments for some reason
-				cout << "TX Text Editor Commands and Usage: \n";
-				cout << "\tUsage: ./tx [args] [filename]\n";
-				cout << "\t--help -h: Show this help message and quit.\n";
-				cout << "\t--hide-gui -H: Hide the GUI.\n";
-				return false;
-			}
-			else if(args[i] == "--hide-gui" || "-H") {
-				//TO DO: Implement a way to hide the GUI in main(). Maybe an object?
-			}
+	else {
+		for(int i=1; i<arg_count; i++) {
+			parsed_arguments.push_back(args[i]);
 		}
-
+		return parsed_arguments;
 	}
 }
 
-void init_terminal(string filename) {
+void init_terminal(vector<string> args) {
 
 	/*
 			****VARIABLES IN FUNCTION init_terminal()****
@@ -79,6 +72,7 @@ void init_terminal(string filename) {
 		input (char): the character that was last grabbed from the keyboard
 		quit (bool): a true/false value to indicate if the user wanted to quit
 		file_buf(string): the file buffer, which will store the contents of the file before it's saved.
+		args (vector<string>): arguments parsed before the terminal was started
 
 	*/
 
@@ -87,8 +81,25 @@ void init_terminal(string filename) {
 	char input = NULL;
 	bool quit = false;
 	string file_buf = "";
+	string filename;
 	//string title = "TX Text Editor v0.1\tFile: " + filename;
 	vector<string> document;
+
+	//We'll parse the arguments first
+
+	if(args.size() == 0) {						//For now we'll require the user to enter a file name, so we'll print usage and quit.
+		print_usage();
+		return;
+	}
+	else {
+		//for(int i=0; i<args.size(); i++) {
+			//if(args[i] == "--help" || "-h") {		//Checking for the help flag
+				//print_usage();
+				//return;
+			//}
+		//}
+		filename = args.back();					//We assume the filename is the last argument the user gave
+	}
 
 	//This is where the magic happens
 
@@ -167,6 +178,14 @@ void init_terminal(string filename) {
 	//Magic to quit the program
 	input = getch();
 	quit_program();
+	return;
+}
+
+void print_usage() {
+	cout << "TX Text Editor v0.1 Help\n";
+	cout << "Usage: ./tx [args][filename] - program assumes last argument is the filename. User MUST give a filename.\n";
+	cout << "Arguments:\n";
+	cout << "\t--help, -h: Show this help page and quit\n";
 	return;
 }
 
