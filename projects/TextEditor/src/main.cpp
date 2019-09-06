@@ -11,14 +11,17 @@ using namespace std;
 
 		****FUNCTIONS****
 main(int, char**), returns int:
-	-main function for the program
-	-only parses the arguments and initializes the screen
+	-main function for the program.
+	-only parses the arguments and initializes the screen.
 
 init_terminal(), void function:
-	-initializes the terminal and handles the text editor
+	-initializes the terminal and handles the text editor.
 
-parse_args(int, char**), returns bool:
-	-parses the arguments
+parse_args(int, char**), returns vector<string>:
+	-parses the arguments and places them into a vector for later processing.
+
+print_usage(), void function:
+	-prints usage details to the terminal.
 
 quit_program(), void function:
 	-quits the program
@@ -92,12 +95,23 @@ void init_terminal(vector<string> args) {
 		return;
 	}
 	else {
-		//for(int i=0; i<args.size(); i++) {
-			//if(args[i] == "--help" || "-h") {		//Checking for the help flag
-				//print_usage();
-				//return;
-			//}
-		//}
+		for(int i=0; i<args.size(); i++) {
+			if(args[i].front() == '-') {
+				if(args[i] == "-h") {		//Checking for the help flag
+					print_usage();
+					return;
+				}
+				else if(args[i] == "--help") {
+					print_usage();
+					return;
+				}
+				else {
+					cout << "Invalid argument: " << args[i] << endl;
+					print_usage();
+					return;
+				}
+			}
+		}
 		filename = args.back();					//We assume the filename is the last argument the user gave
 	}
 
