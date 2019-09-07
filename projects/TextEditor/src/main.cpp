@@ -1,7 +1,7 @@
 /*
 
 		****TX Text Editor****
-		version 0.1 (alpha
+		version 0.1 (alpha)
 
 */
 
@@ -221,9 +221,7 @@ void init_terminal(vector<string> args) {
 			if(col > 0) col--;					//Move back one column if possible
 			if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
 				row--;						//Same behavior as the up arrow key at this point.
-				if(col > document[row].length()) {
-					col = document[row].length();
-				}
+				col = document[row].length();
 			}
 		}
 		else if(input == 2) {						//Down arrow key
@@ -249,6 +247,7 @@ void init_terminal(vector<string> args) {
 			col++;							//Move to the next column
 			refresh();
 		}
+		move(row,col);
 		refresh();							//Redraw everything
 	}
 
