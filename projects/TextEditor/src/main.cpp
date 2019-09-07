@@ -92,7 +92,7 @@ void init_terminal(vector<string> args) {
 	bool quit = false;
 	string file_buf = "";
 	string filename;
-	//string title = "TX Text Editor v0.1\tFile: " + filename;
+	string title = "TX Text Editor v0.1\tFile: ";
 	vector<string> document;
 
 	//We'll parse the arguments first
@@ -120,6 +120,7 @@ void init_terminal(vector<string> args) {
 			}
 		}
 		filename = args.back();							//We assume the filename is the last argument the user gave
+		title += filename;
 	}
 
 	//This is where the magic happens
@@ -138,7 +139,8 @@ void init_terminal(vector<string> args) {
 	init_pair(2, COLOR_WHITE, COLOR_BLACK);				//Normal color setting
 
 	attron(COLOR_PAIR(1));						//GUI Stuff
-	mvaddstr(0,0,"TX Text Editor v0.1");				//Title at the top (add filename here at some point)
+	const char* t = title.c_str();
+	mvaddstr(0,0,t);						//Title at the top (add filename here at some point)
 	mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");		//Short list of commands at the bottom
 	attroff(COLOR_PAIR(1));
 	refresh();
