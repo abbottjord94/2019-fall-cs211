@@ -90,6 +90,7 @@ void init_terminal(vector<string> args) {
 	int num_cols = 0, num_rows = 0, row = 1, col = 0;
 	char input = NULL;
 	bool quit = false;
+	bool hide_gui = false;
 	string file_buf = "";
 	string filename;
 	string title = "TX Text Editor v0.1\tFile: ";
@@ -111,6 +112,22 @@ void init_terminal(vector<string> args) {
 				else if(args[i] == "--help") {				//The same help flag, but different.
 					print_usage();
 					return;
+				}
+				else if(args[i] == "--hide-gui") {
+					hide_gui = true;
+					args.erase(args.begin()+i);
+					if(args.size() == 0) {
+						print_usage();
+						return;
+					}
+				}
+				else if(args[i] == "-H") {
+					hide_gui = true;
+					args.erase(args.begin()+i);
+					if(args.size() == 0) {
+						print_usage();
+						return;
+					}
 				}
 				else {							//We found an undefined argument, so print the usage details and quit.
 					cout << "Invalid argument: " << args[i] << endl;
@@ -138,12 +155,14 @@ void init_terminal(vector<string> args) {
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);				//Inverted color setting
 	init_pair(2, COLOR_WHITE, COLOR_BLACK);				//Normal color setting
 
-	attron(COLOR_PAIR(1));						//GUI Stuff
-	const char* t = title.c_str();
-	mvaddstr(0,0,t);						//Title at the top (add filename here at some point)
-	mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");		//Short list of commands at the bottom
-	attroff(COLOR_PAIR(1));
-	refresh();
+	if(!hide_gui) {
+		attron(COLOR_PAIR(1));						//GUI Stuff
+		const char* t = title.c_str();
+		mvaddstr(0,0,t);						//Title at the top (add filename here at some point)
+		mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");		//Short list of commands at the bottom
+		attroff(COLOR_PAIR(1));
+		refresh();
+	}
 
 	ifstream infile(filename);						//Now we'll check for that file and try to open it in the editor
 	if(infile) {
@@ -168,7 +187,7 @@ void init_terminal(vector<string> args) {
 	}
 	else {
 		document.push_back(string());					//Used as a buffer since the title will take one row - this way, we won't need to offset the row variable later
-		document.push_back(string());
+		document.push_back(string());					//This will be changed later
 	}
 	while(!quit) {
 		input = getch();
@@ -266,6 +285,7 @@ void print_usage() {
 	cout << "Usage: ./tx [args][filename] - program assumes last argument is the filename. User MUST give a filename.\n";
 	cout << "Arguments:\n";
 	cout << "\t--help, -h: Show this help page and quit\n";
+	cout << "\t--hide-gui, -H: Hide the graphical user interface (GUI)\n";
 	return;
 }
 
