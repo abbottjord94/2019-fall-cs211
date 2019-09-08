@@ -81,18 +81,21 @@ void init_terminal(vector<string> args) {
 		row (int): the current row number
 		input (char): the character that was last grabbed from the keyboard
 		quit (bool): a true/false value to indicate if the user wanted to quit
-		file_buf(string): the file buffer, which will store the contents of the file before it's saved.
+		file_buf (string): the file buffer, which will store the contents of the file before it's saved.
 		args (vector<string>): arguments parsed before the terminal was started
+		file_loc (string): the string displaying the current row and column at the top of the screen
 
 	*/
 
 	WINDOW* main_window = NULL;
 	int num_cols = 0, num_rows = 0, row = 1, col = 0;
 	char input = NULL;
+	const char* t;
 	bool quit = false;
 	bool hide_gui = false;
 	string file_buf = "";
 	string filename;
+	string file_loc;
 	string title = "TX Text Editor v0.1\tFile: ";
 	vector<string> document;
 
@@ -113,7 +116,7 @@ void init_terminal(vector<string> args) {
 					print_usage();
 					return;
 				}
-				else if(args[i] == "--hide-gui") {
+				else if(args[i] == "--hide-gui") {			//Checking for the hide-gui flag
 					hide_gui = true;
 					args.erase(args.begin()+i);
 					if(args.size() == 0) {
@@ -121,7 +124,7 @@ void init_terminal(vector<string> args) {
 						return;
 					}
 				}
-				else if(args[i] == "-H") {
+				else if(args[i] == "-H") {				//Same hide-gui flag
 					hide_gui = true;
 					args.erase(args.begin()+i);
 					if(args.size() == 0) {
@@ -157,9 +160,13 @@ void init_terminal(vector<string> args) {
 
 	if(!hide_gui) {
 		attron(COLOR_PAIR(1));						//GUI Stuff
-		const char* t = title.c_str();
+		t = title.c_str();
 		mvaddstr(0,0,t);						//Title at the top (add filename here at some point)
 		mvaddstr(num_rows-2,0,"^C: Close\t^O: Write to file");		//Short list of commands at the bottom
+		file_loc = "Row: " + to_string(row) + " / Column: " + to_string(col) + " ";
+		for(int i=0; i<file_loc.length(); i++) {
+			mvaddch(0,num_cols-file_loc.length()+i,file_loc[i]);
+		}
 		attroff(COLOR_PAIR(1));
 		refresh();
 	}
@@ -267,6 +274,18 @@ void init_terminal(vector<string> args) {
 			mvaddch(row,col,input);					//For every other input, just print the character to the terminal and move to the next column.
 			col++;							//Move to the next column
 			refresh();
+		}
+		if(!hide_gui) {							//As long as the GUI isn't hidden, display the current row and column at the top-right corner of the screen
+			attron(COLOR_PAIR(1));
+			//for(int i=0; i<num_cols; i++) {
+			//	mvdelch(0,i);					//Delete the entire top row
+			//}
+			//mvaddstr(0,0,t);
+			file_loc = "Row: " + to_string(row) + " / Column: " + to_string(col) + " ";
+			for(int i=0; i<file_loc.length(); i++) {
+				mvaddch(0,num_cols-file_loc.length()+i,file_loc[i]);
+			}
+			attroff(COLOR_PAIR(1));
 		}
 		move(row,col);
 		refresh();							//Redraw everything
