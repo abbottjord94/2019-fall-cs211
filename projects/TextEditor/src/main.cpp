@@ -13,6 +13,15 @@
 #include <string>
 #include <vector>
 
+#define BACKSPACE_KEY 7
+#define RETURN_KEY 10
+#define LEFT_ARROW 4
+#define RIGHT_ARROW 5
+#define UP_ARROW 3
+#define DOWN_ARROW 2
+#define TAB_KEY 9
+#define CTRL_O 15
+
 using namespace std;
 /*
 
@@ -224,7 +233,7 @@ void init_terminal(vector<string> args) {
 	}
 	while(!quit) {
 		input = getch();
-		if(input == 7) {						//7 is the backspace character defined on this machine
+		if(input == BACKSPACE_KEY) {						//7 is the backspace character defined on this machine
 
 			if(col > 0) col--;					//Ensures that the column number does not go below 0.
 
@@ -243,7 +252,7 @@ void init_terminal(vector<string> args) {
 			mvdelch(row,col);
 			redraw_document(document,row,num_rows,num_cols);					//Delete the character at this location
 		}
-		else if(input == 13 || input == 10) { 				//13 or 10 are the carriage return characters
+		else if(input == RETURN_KEY) { 					//13 or 10 are the carriage return characters
 			document[row].insert(document[row].begin()+col,'\n');
 			redraw_column(document,row,col,num_cols);
 			row++;							//Moves to the next row
@@ -256,13 +265,13 @@ void init_terminal(vector<string> args) {
 			redraw_document(document,row,num_rows,num_cols);
 			refresh();						//Redraw the screen
 		}
-		else if(input == 9) {						//Handling tabs (needs work)
+		else if(input == TAB_KEY) {						//Handling tabs (needs work)
 			//document[row].push_back('\t');			//Push back the tab character
 			//mvaddstr(row,col,"    ");				//Add the tab character to the screen
 			//col+=4;
 			refresh();
 		}
-		else if(input == 15) {						//When the user presses Ctrl+O to save the file
+		else if(input == CTRL_O) {						//When the user presses Ctrl+O to save the file
 			ofstream outfile(filename);				//Create the output file stream
 			for(int i=1; i<document.size(); i++) {			//Loop through each line of the document
 				file_buf += document[i];			//Append the line to the file buffer
@@ -270,7 +279,7 @@ void init_terminal(vector<string> args) {
 			outfile << file_buf;					//Write the file buffer to the file output buffer
 			outfile.close();					//Close the file
 		}
-		else if(input == 3) {						//Up arrow key
+		else if(input == UP_ARROW) {						//Up arrow key
 			if(row > 1) {
 				row--;						//Move up one row
 				if(col > document[row].length()) {		//If the current column is greater than the current row's max column, set the column to the end of the line.
@@ -278,14 +287,14 @@ void init_terminal(vector<string> args) {
 				}
 			}
 		}
-		else if(input == 4) {						//Left arrow key
+		else if(input == LEFT_ARROW) {						//Left arrow key
 			if(col > 0) col--;					//Move back one column if possible
 			if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
 				row--;						//Same behavior as the up arrow key at this point.
 				col = document[row].length();
 			}
 		}
-		else if(input == 2) {						//Down arrow key
+		else if(input == DOWN_ARROW) {						//Down arrow key
 			if(row < document.size()) {
 				row++;						//Go down one row if we aren't on the last row of the document
 				if(col >= document[row].length()) {
@@ -293,7 +302,7 @@ void init_terminal(vector<string> args) {
 				}
 			}
 		}
-		else if(input == 5) {						//Right arrow key
+		else if(input == RIGHT_ARROW) {						//Right arrow key
 			if(col < document[row].length()) {
 				col++;
 			}
