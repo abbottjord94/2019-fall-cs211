@@ -1,7 +1,7 @@
 # Design Diary (Milestone 1)
 This milestone primarily focused on the initial design of the program and some of its basic functionality. In addition to a graphical user interface (GUI), most of the basic keyboard handling, usage details, and some command line arguments parsing were implemented.
 
-The grahpical user interface is intended to be minimalistic, similar to those found in GNU NANO or VIM. It will consist only of a title, file name, line/column counters, a list of key commands, and a saved/modified indicator flag. All GUI components will be printed to the screen with a white background and black text (inverse of the normal text color).
+The graphical user interface is intended to be minimalistic, similar to those found in GNU NANO or VIM. It will consist only of a title, file name, line/column counters, a list of key commands, and a saved/modified indicator flag. All GUI components will be printed to the screen with a white background and black text (inverse of the normal text color).
 
 During this milestone, keyboard handling was a primary concern after the creation of the GUI. This can be challenging as not all keys will output a character to the screen, but have other functionality (Backspace, Return, CTRL+C to close, or CTRL+O to save). In addition, the characters printed to the screen needed to be saved in another buffer in order to save the file data to the hard drive.
 
