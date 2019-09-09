@@ -27,6 +27,12 @@ init_terminal(), void function:
 parse_args(int, char**), returns vector<string>:
 	-parses the arguments and places them into a vector for later processing.
 
+redraw_document(vector<string>, int, int, int), void function:
+	-redraws the document from the given row.
+
+redraw_column(vector<string>, int, int, int, int), void function:
+	-redraws the given row from the given column.
+
 print_usage(), void function:
 	-prints usage details to the terminal.
 
@@ -36,6 +42,8 @@ quit_program(), void function:
 
 vector<string> parse_args(int arg_count, char* args[]);
 void init_terminal(vector<string> args);
+void redraw_document(vector<string> doc, int r, int num_rows, int num_cols);
+void redraw_column(vector<string> doc, int c, int r, int num_rows, int num_cols);
 void print_usage();
 void quit_program();
 
@@ -70,6 +78,28 @@ vector<string> parse_args(int arg_count, char* args[]) {
 	}
 }
 
+void redraw_document(vector<string> doc, int r, int num_rows, int num_cols) {
+	for(int i=r; i<num_rows-2; i++) {
+		for(int j=0; j<num_cols; j++) {
+			mvdelch(i,j);
+		}
+	}
+	for(int i=r; i<num_rows-2; i++) {
+		for(int j=0; j<num_cols; j++) {
+			mvaddch(i,j,doc[i][j]);
+		}
+	}
+}
+
+void redraw_column(vector<string> doc, int c, int r, int num_cols) {
+	for(int i=c; i<num_cols; i++) {
+		mvdelch(r,i);
+	}
+	for(int i=c; i<doc[r].length(); i++) {
+		mvaddch(r,i,doc[r][i]);
+	}
+}
+
 void init_terminal(vector<string> args) {
 
 	/*
@@ -92,7 +122,7 @@ void init_terminal(vector<string> args) {
 	char input = NULL;
 	const char* t;
 	bool quit = false;
-	bool hide_gui = false;
+	bool hide_gui = false, word_wrap = false;
 	string file_buf = "";
 	string filename;
 	string file_loc;
@@ -108,15 +138,11 @@ void init_terminal(vector<string> args) {
 	else {
 		for(int i=0; i<args.size(); i++) {
 			if(args[i].front() == '-') {
-				if(args[i] == "-h") {					//Checking for the help flag
+				if(args[i] == "-h" || args[i] == "--help") {					//Checking for the help flag
 					print_usage();
 					return;
 				}
-				else if(args[i] == "--help") {				//The same help flag, but different.
-					print_usage();
-					return;
-				}
-				else if(args[i] == "--hide-gui") {			//Checking for the hide-gui flag
+				else if(args[i] == "--hide-gui" || args[i] == "-H") {				//Checking for the hide-gui flag
 					hide_gui = true;
 					args.erase(args.begin()+i);
 					if(args.size() == 0) {
@@ -124,8 +150,8 @@ void init_terminal(vector<string> args) {
 						return;
 					}
 				}
-				else if(args[i] == "-H") {				//Same hide-gui flag
-					hide_gui = true;
+				else if(args[i] == "-W" || args[i] == "--word-wrap") {				//Checking for the word wrap flag
+					word_wrap = true;
 					args.erase(args.begin()+i);
 					if(args.size() == 0) {
 						print_usage();
@@ -178,16 +204,16 @@ void init_terminal(vector<string> args) {
 			getline(infile, line);					//get the next line from the input file and store it in the temporary "line" variable
 			document.push_back(line);				//Push the line into the document vector.
 		}
-		if(document.size() > num_rows) {				//We only want to render as many characters as we have space for, so we'll check the boundaries.
-			for(int i=1; i<num_rows; i++) {
-				for(int j=0; j<document[i].length(); j++) {
-					mvaddch(i,j,document[i][j]);
+		if(document.size() > num_rows-2) {				//We only want to render as many characters as we have space for, so we'll check the boundaries.
+			for(int i=1; i<num_rows-2; i++) {
+				for(int j=0; j<document[i-1].length(); j++) {
+					mvaddch(i,j,document[i-1][j]);
 				}
 			}
 		} else {
 			for(int i=1; i<document.size(); i++) {			//If the document is smaller than the screen, we'll just render the whole thing.
-				for(int j=0; j<document[i].length(); j++) {
-					mvaddch(i,j,document[i][j]);
+				for(int j=0; j<document[i-1].length(); j++) {
+					mvaddch(i,j,document[i-1][j]);
 				}
 			}
 		}
@@ -212,15 +238,22 @@ void init_terminal(vector<string> args) {
 				col = document[row].length() - 1;		//Go to the end of the line, with an offset for the newline '\n' character.
 			}
 			if(!document[row].empty()) {				//As long as the current line isn't empty (this caused some really funny Heartbleed-like errors before I implemented this)
-				document[row].pop_back();			//Remove the last character from the document
+				document[row].erase(document[row].begin()+col);			//Remove the last character from the document
 			}
-			mvdelch(row,col);					//Delete the character at this location
+			mvdelch(row,col);
+			redraw_document(document,row,num_rows,num_cols);					//Delete the character at this location
 		}
 		else if(input == 13 || input == 10) { 				//13 or 10 are the carriage return characters
-			document[row].push_back('\n');
+			document[row].insert(document[row].begin()+col,'\n');
+			redraw_column(document,row,col,num_cols);
 			row++;							//Moves to the next row
 			col = 0;						//Sets the column number to 0
-			document.push_back(string());
+			if(row == document.size()) {
+				document.push_back(string());			//If we're at the end of the document, just push back an empty string
+			} else {						//Otherwise, insert an empty string where the cursor is.
+				document.insert(document.begin()+row-1,string());
+			}
+			redraw_document(document,row,num_rows,num_cols);
 			refresh();						//Redraw the screen
 		}
 		else if(input == 9) {						//Handling tabs (needs work)
@@ -270,17 +303,16 @@ void init_terminal(vector<string> args) {
 			}
 		}
 		else if(input != NULL) {
-			document[row].push_back(input);
+			document[row].insert(document[row].begin()+col,input);
 			mvaddch(row,col,input);					//For every other input, just print the character to the terminal and move to the next column.
 			col++;							//Move to the next column
 			refresh();
 		}
 		if(!hide_gui) {							//As long as the GUI isn't hidden, display the current row and column at the top-right corner of the screen
 			attron(COLOR_PAIR(1));
-			//for(int i=0; i<num_cols; i++) {
-			//	mvdelch(0,i);					//Delete the entire top row
-			//}
-			//mvaddstr(0,0,t);
+			for(int i=0; i<file_loc.length(); i++) {
+				mvdelch(0,num_cols-file_loc.length()+i);					//Delete the entire top row
+			}
 			file_loc = "Row: " + to_string(row) + " / Column: " + to_string(col) + " ";
 			for(int i=0; i<file_loc.length(); i++) {
 				mvaddch(0,num_cols-file_loc.length()+i,file_loc[i]);
@@ -300,11 +332,15 @@ void init_terminal(vector<string> args) {
 }
 
 void print_usage() {
+
+	//Lines in comments are to be implemented later
+
 	cout << "TX Text Editor v0.1 Help\n";
 	cout << "Usage: ./tx [args][filename] - program assumes last argument is the filename. User MUST give a filename.\n";
 	cout << "Arguments:\n";
 	cout << "\t--help, -h: Show this help page and quit\n";
 	cout << "\t--hide-gui, -H: Hide the graphical user interface (GUI)\n";
+	cout << "\t--word-wrap, -W: Enable word wrap (disabled by default). Currently not implemented.\n";
 	return;
 }
 
