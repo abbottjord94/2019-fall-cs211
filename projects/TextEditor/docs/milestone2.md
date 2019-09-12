@@ -9,6 +9,7 @@ In our next milestone, you will load a file from the command line and display it
 
 ## Grading
 This assignment is worth 100 points.  Your grade will be based on the following:
+* Usage of at least one STL vector or STL list data structure
 * Regular, appropriately sized github checkins (no single-line checkins, no 1000+ line checkins)
 * Tracking progress on your github project board and github issue tracker
 * Maintaining a [design diary](milestone2_design_diary.md) for this assignment
@@ -16,4 +17,8 @@ This assignment is worth 100 points.  Your grade will be based on the following:
 * Completing the project / making reasonable progress
 
 ## Due Date
-This assignment is due midnight, September 20, 2019.  You will turn in your project by checking your code into github.  Once checked in, [create a milestone 2 release](https://help.github.com/en/articles/creating-releases).
+This assignment is due midnight, September 20, 2019.  You will turn in your project by checking your code into github.  Next, create an GIF walkthrough of your program using [LICEcap](https://forum.lumberhacks.org/viewtopic.php?f=10&t=9).  Upload this image to your repository and put a link to the image in your reflection. *Be sure to place your reflection in this folder!* Lastly, once everything is checked in, [create a milestone 2 release](https://help.github.com/en/articles/creating-releases).
+
+## Example Walkthrough Image
+Here is an image that I made running some lecture code.  Yours should look pretty similar but with PA #2.
+![walkthrough](example.gif)
