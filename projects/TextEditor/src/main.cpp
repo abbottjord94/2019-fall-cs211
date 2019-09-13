@@ -93,8 +93,8 @@ void redraw_document(vector<string> doc, int r, int num_rows, int num_cols) {
 			mvdelch(i,j);
 		}
 	}
-	for(int i=r; i<num_rows-2; i++) {
-		for(int j=0; j<num_cols; j++) {
+	for(int i=r; i<doc.size(); i++) {
+		for(int j=0; j<doc[i].length(); j++) {
 			mvaddch(i,j,doc[i][j]);
 		}
 	}
@@ -319,7 +319,7 @@ void init_terminal(vector<string> args) {
 		}
 		if(!hide_gui) {							//As long as the GUI isn't hidden, display the current row and column at the top-right corner of the screen
 			attron(COLOR_PAIR(1));
-			for(int i=0; i<file_loc.length(); i++) {
+			for(int i=0; i<=file_loc.length(); i++) {
 				mvdelch(0,num_cols-file_loc.length()+i);					//Delete the entire top row
 			}
 			file_loc = "Row: " + to_string(row) + " / Column: " + to_string(col) + " ";
