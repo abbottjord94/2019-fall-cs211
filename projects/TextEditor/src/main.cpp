@@ -52,7 +52,7 @@ quit_program(), void function:
 vector<string> parse_args(int arg_count, char* args[]);
 void init_terminal(vector<string> args);
 void redraw_document(vector<string> doc, int r, int num_rows, int num_cols);
-void redraw_column(vector<string> doc, int c, int r, int num_rows, int num_cols);
+void redraw_column(vector<string> doc, int c, int r, int num_cols);
 void print_usage();
 void quit_program();
 
@@ -88,20 +88,13 @@ vector<string> parse_args(int arg_count, char* args[]) {
 }
 
 void redraw_document(vector<string> doc, int r, int num_rows, int num_cols) {
-	for(int i=r; i<num_rows-2; i++) {
-		for(int j=0; j<num_cols; j++) {
-			mvdelch(i,j);
-		}
-	}
 	for(int i=r; i<doc.size(); i++) {
-		for(int j=0; j<doc[i].length(); j++) {
-			mvaddch(i,j,doc[i][j]);
-		}
+		redraw_column(doc,0,i,num_cols);
 	}
 }
 
 void redraw_column(vector<string> doc, int c, int r, int num_cols) {
-	for(int i=c; i<num_cols; i++) {
+	for(int i=c; i<doc[r].length(); i++) {
 		mvdelch(r,i);
 	}
 	for(int i=c; i<doc[r].length(); i++) {
@@ -123,6 +116,9 @@ void init_terminal(vector<string> args) {
 		file_buf (string): the file buffer, which will store the contents of the file before it's saved.
 		args (vector<string>): arguments parsed before the terminal was started
 		file_loc (string): the string displaying the current row and column at the top of the screen
+		title (string): the title of the program, displayed along with the file name.
+		t (const char*): the combined title and filename which will be converted to a C-string.
+		document (vector<string>): the document data, with each line stored in its own index as a string
 
 	*/
 
@@ -207,7 +203,7 @@ void init_terminal(vector<string> args) {
 	}
 
 	ifstream infile(filename);						//Now we'll check for that file and try to open it in the editor
-	if(infile) {
+	if(infile.good()) {
 		while(infile.good()) {						//Checking to make sure we aren't at the end of the file
 			string line;
 			getline(infile, line);					//get the next line from the input file and store it in the temporary "line" variable
@@ -228,29 +224,26 @@ void init_terminal(vector<string> args) {
 		}
 	}
 	else {
-		document.push_back(string());					//Used as a buffer since the title will take one row - this way, we won't need to offset the row variable later
-		document.push_back(string());					//This will be changed later
+		document.push_back(string());					//Used as a buffer since the title will take one row - this way, we won't need to offset the row variable later					//This will be changed later
 	}
 	while(!quit) {
 		input = getch();
-		if(input == BACKSPACE_KEY) {						//7 is the backspace character defined on this machine
-
-			if(col > 0) col--;					//Ensures that the column number does not go below 0.
-
-			//if(document[row][col-4] == '\t') {			//More tab handling stuff
-			//	document[row].pop_back();
-			//	col -= 4;
-			//}
-
-			else if(col == 0 && row > 1) {				//If the beginning of a row is reached, go to the row above it(if available)
-				row--;						//Go backwards one row
-				col = document[row].length() - 1;		//Go to the end of the line, with an offset for the newline '\n' character.
+		if(input == BACKSPACE_KEY) {					//7 is the backspace character defined on this machine
+			if(col > 0) {
+				col--;
+				document[row].erase(document[row].begin()+col);
+				redraw_column(document,col,row-1,num_cols);
 			}
-			if(!document[row].empty()) {				//As long as the current line isn't empty (this caused some really funny Heartbleed-like errors before I implemented this)
-				document[row].erase(document[row].begin()+col);			//Remove the last character from the document
+			else if(col == 0 && row > 0) {
+				document[row-1].pop_back();
+				document[row-1] += document[row];
+				document.erase(document.begin()+row);
+				row--;
+				redraw_document(document,row,num_rows,num_cols);
 			}
-			mvdelch(row,col);
-			redraw_document(document,row,num_rows,num_cols);					//Delete the character at this location
+			else if(row <= 1 && col == 0) {
+			}
+
 		}
 		else if(input == RETURN_KEY) { 					//13 or 10 are the carriage return characters
 			document[row].insert(document[row].begin()+col,'\n');
@@ -265,13 +258,13 @@ void init_terminal(vector<string> args) {
 			redraw_document(document,row,num_rows,num_cols);
 			refresh();						//Redraw the screen
 		}
-		else if(input == TAB_KEY) {						//Handling tabs (needs work)
+		else if(input == TAB_KEY) {					//Handling tabs (needs work)
 			//document[row].push_back('\t');			//Push back the tab character
 			//mvaddstr(row,col,"    ");				//Add the tab character to the screen
 			//col+=4;
 			refresh();
 		}
-		else if(input == CTRL_O) {						//When the user presses Ctrl+O to save the file
+		else if(input == CTRL_O) {					//When the user presses Ctrl+O to save the file
 			ofstream outfile(filename);				//Create the output file stream
 			for(int i=1; i<document.size(); i++) {			//Loop through each line of the document
 				file_buf += document[i];			//Append the line to the file buffer
@@ -279,7 +272,7 @@ void init_terminal(vector<string> args) {
 			outfile << file_buf;					//Write the file buffer to the file output buffer
 			outfile.close();					//Close the file
 		}
-		else if(input == UP_ARROW) {						//Up arrow key
+		else if(input == UP_ARROW) {					//Up arrow key
 			if(row > 1) {
 				row--;						//Move up one row
 				if(col > document[row].length()) {		//If the current column is greater than the current row's max column, set the column to the end of the line.
@@ -287,14 +280,14 @@ void init_terminal(vector<string> args) {
 				}
 			}
 		}
-		else if(input == LEFT_ARROW) {						//Left arrow key
+		else if(input == LEFT_ARROW) {					//Left arrow key
 			if(col > 0) col--;					//Move back one column if possible
 			if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
 				row--;						//Same behavior as the up arrow key at this point.
 				col = document[row].length();
 			}
 		}
-		else if(input == DOWN_ARROW) {						//Down arrow key
+		else if(input == DOWN_ARROW) {					//Down arrow key
 			if(row < document.size()) {
 				row++;						//Go down one row if we aren't on the last row of the document
 				if(col >= document[row].length()) {
@@ -302,7 +295,7 @@ void init_terminal(vector<string> args) {
 				}
 			}
 		}
-		else if(input == RIGHT_ARROW) {						//Right arrow key
+		else if(input == RIGHT_ARROW) {					//Right arrow key
 			if(col < document[row].length()) {
 				col++;
 			}
@@ -320,7 +313,7 @@ void init_terminal(vector<string> args) {
 		if(!hide_gui) {							//As long as the GUI isn't hidden, display the current row and column at the top-right corner of the screen
 			attron(COLOR_PAIR(1));
 			for(int i=0; i<=file_loc.length(); i++) {
-				mvdelch(0,num_cols-file_loc.length()+i);					//Delete the entire top row
+				mvdelch(0,num_cols-file_loc.length()+i);	//Delete the entire top row
 			}
 			file_loc = "Row: " + to_string(row) + " / Column: " + to_string(col) + " ";
 			for(int i=0; i<file_loc.length(); i++) {
