@@ -111,6 +111,8 @@ void init_terminal(vector<string> args) {
 		num_rows (int): the maximum number of rows
 		col (int): the current column number
 		row (int): the current row number
+		row_offset (int): the row offset value
+		col_offset (int): the column offset value
 		input (char): the character that was last grabbed from the keyboard
 		quit (bool): a true/false value to indicate if the user wanted to quit
 		file_buf (string): the file buffer, which will store the contents of the file before it's saved.
@@ -123,7 +125,7 @@ void init_terminal(vector<string> args) {
 	*/
 
 	WINDOW* main_window = NULL;
-	int num_cols = 0, num_rows = 0, row = 1, col = 0;
+	int num_cols = 0, num_rows = 0, row = 0, col = 0, row_offset=1, col_offset=0;
 	char input = NULL;
 	const char* t;
 	bool quit = false;
@@ -232,7 +234,7 @@ void init_terminal(vector<string> args) {
 			if(col > 0) {
 				col--;
 				document[row].erase(document[row].begin()+col);
-				redraw_column(document,col,row-1,num_cols);
+				redraw_column(document,col,row,num_cols);
 			}
 			else if(col == 0 && row > 0) {
 				document[row-1].pop_back();
@@ -246,16 +248,17 @@ void init_terminal(vector<string> args) {
 
 		}
 		else if(input == RETURN_KEY) { 					//13 or 10 are the carriage return characters
-			document[row].insert(document[row].begin()+col,'\n');
-			redraw_column(document,row,col,num_cols);
+			document[row].insert(document[row].begin()+col-1,'\n');
 			row++;							//Moves to the next row
 			col = 0;						//Sets the column number to 0
-			if(row == document.size()) {
+			if(row == document.size()-1) {
 				document.push_back(string());			//If we're at the end of the document, just push back an empty string
+				document[row].insert(document[row].begin()+col-1, '\n');
 			} else {						//Otherwise, insert an empty string where the cursor is.
 				document.insert(document.begin()+row-1,string());
+				document[row].insert(document[row].begin()+col-1, '\n');
 			}
-			redraw_document(document,row,num_rows,num_cols);
+			redraw_document(document,row-1,num_rows,num_cols);
 			refresh();						//Redraw the screen
 		}
 		else if(input == TAB_KEY) {					//Handling tabs (needs work)
@@ -275,8 +278,8 @@ void init_terminal(vector<string> args) {
 		else if(input == UP_ARROW) {					//Up arrow key
 			if(row > 1) {
 				row--;						//Move up one row
-				if(col > document[row].length()) {		//If the current column is greater than the current row's max column, set the column to the end of the line.
-					col = document[row].length();
+				if(col > document[row-1].length()) {		//If the current column is greater than the current row's max column, set the column to the end of the line.
+					col = document[row-1].length();
 				}
 			}
 		}
@@ -284,22 +287,22 @@ void init_terminal(vector<string> args) {
 			if(col > 0) col--;					//Move back one column if possible
 			if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
 				row--;						//Same behavior as the up arrow key at this point.
-				col = document[row].length();
+				col = document[row-1].length();
 			}
 		}
 		else if(input == DOWN_ARROW) {					//Down arrow key
 			if(row < document.size()) {
 				row++;						//Go down one row if we aren't on the last row of the document
-				if(col >= document[row].length()) {
-					col = document[row].length();
+				if(col >= document[row-1].length()) {
+					col = document[row-1].length();
 				}
 			}
 		}
 		else if(input == RIGHT_ARROW) {					//Right arrow key
-			if(col < document[row].length()) {
+			if(col < document[row-1].length()) {
 				col++;
 			}
-			if(col >= document[row].length()) {
+			if(col >= document[row-1].length()) {
 				row++;
 				col = 0;
 			}
