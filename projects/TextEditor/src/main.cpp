@@ -313,11 +313,11 @@ void init_terminal(vector<string> args) {
 			if(col < document[row].length()) {
 				col++;
 			}
-			if(col >= document[row].length()) {
+			if(col >= document[row].length()) {			//If we overflow to the next line
 				row++;
 				col = 0;
 			}
-			if(col > document[row].length() && row < document.size()) {
+			else if(col > document[row].length() && row < document.size()) {	//If we're at the very end of the document
 				row = row;
 				col = document[row].length();
 			}
