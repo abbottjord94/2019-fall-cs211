@@ -87,17 +87,23 @@ vector<string> parse_args(int arg_count, char* args[]) {
 	}
 }
 
+void delete_column(vector<string> doc, int r, int c) {
+	for(int i=0; i<doc[r].length(); i++) {
+		mvdelch(r,i);
+	}
+}
+
 void redraw_document(vector<string> doc, int r, int num_rows, int num_cols) {
-	for(int i=r; i<doc.size(); i++) {
+	for(int i=0; i<doc.size(); i++) {
 		redraw_column(doc,0,i,num_cols);
 	}
 }
 
 void redraw_column(vector<string> doc, int c, int r, int num_cols) {
-	for(int i=c; i<doc[r].length(); i++) {
+	for(int i=0; i<doc[r].length(); i++) {
 		mvdelch(r,i);
 	}
-	for(int i=c; i<doc[r].length(); i++) {
+	for(int i=0; i<doc[r].length(); i++) {
 		mvaddch(r,i,doc[r][i]);
 	}
 }
@@ -237,29 +243,31 @@ void init_terminal(vector<string> args) {
 				redraw_column(document,col,row,num_cols);
 			}
 			else if(col == 0 && row > 0) {
-				document[row-1].pop_back();
 				document[row-1] += document[row];
 				document.erase(document.begin()+row);
+				delete_column(document,row,col);
 				row--;
 				redraw_document(document,row,num_rows,num_cols);
 			}
 			else if(row <= 1 && col == 0) {
+
 			}
 
 		}
 		else if(input == RETURN_KEY) { 					//13 or 10 are the carriage return characters
-			document[row].insert(document[row].begin()+col-1,'\n');
+
+			document[row].insert(document[row].begin()+col,'\n');
+			delete_column(document,row,col);
 			row++;							//Moves to the next row
 			col = 0;						//Sets the column number to 0
 			if(row == document.size()-1) {
 				document.push_back(string());			//If we're at the end of the document, just push back an empty string
-				document[row].insert(document[row].begin()+col-1, '\n');
 			} else {						//Otherwise, insert an empty string where the cursor is.
-				document.insert(document.begin()+row-1,string());
-				document[row].insert(document[row].begin()+col-1, '\n');
+				document.insert(document.begin()+row,string());
 			}
-			redraw_document(document,row-1,num_rows,num_cols);
+			redraw_document(document,row,num_rows,num_cols);
 			refresh();						//Redraw the screen
+
 		}
 		else if(input == TAB_KEY) {					//Handling tabs (needs work)
 			//document[row].push_back('\t');			//Push back the tab character
@@ -287,7 +295,7 @@ void init_terminal(vector<string> args) {
 			if(col > 0) col--;					//Move back one column if possible
 			if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
 				row--;						//Same behavior as the up arrow key at this point.
-				col = document[row-1].length();
+				col = document[row].length();
 			}
 		}
 		else if(input == DOWN_ARROW) {					//Down arrow key
@@ -299,18 +307,23 @@ void init_terminal(vector<string> args) {
 			}
 		}
 		else if(input == RIGHT_ARROW) {					//Right arrow key
-			if(col < document[row-1].length()) {
+			if(col < document[row].length()) {
 				col++;
 			}
-			if(col >= document[row-1].length()) {
+			if(col >= document[row].length()) {
 				row++;
 				col = 0;
+			}
+			if(col > document[row].length() && row < document.size()) {
+				row = row;
+				col = document[row].length();
 			}
 		}
 		else if(input != NULL) {
 			document[row].insert(document[row].begin()+col,input);
 			mvaddch(row,col,input);					//For every other input, just print the character to the terminal and move to the next column.
-			col++;							//Move to the next column
+			col++;
+			redraw_document(document,row,num_rows,num_cols);							//Move to the next column
 			refresh();
 		}
 		if(!hide_gui) {							//As long as the GUI isn't hidden, display the current row and column at the top-right corner of the screen
