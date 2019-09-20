@@ -36,6 +36,9 @@ init_terminal(), void function:
 parse_args(int, char**), returns vector<string>:
 	-parses the arguments and places them into a vector for later processing.
 
+delete_column(vector<string>, int, int), void function:
+	-deletes the specified row
+
 redraw_document(vector<string>, int, int, int), void function:
 	-redraws the document from the given row.
 
