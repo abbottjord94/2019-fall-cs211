@@ -13,3 +13,6 @@ The options are parsed first, and removed from the vector<string> containing the
 The most challenging portion of this milestone was getting the program to correctly read the file. As the document is structured as a vector<string>, this was made considerably easier through the use of the std::getline() and std::vector::push_back() functions. As tabs are not correctly handled yet, these are not properly processed by the terminal and show up only as single spaces, in part due to the column mismatch created by the Tab character, as discussed in Milestone 1.
   
 Column overflow will be handled in one of two ways, with the option being given to the user. The default mode will allow for overflow, and the user will be able to navigate each column individually (similar to how NANO allows the user to do this, but ideally without the jumping). The second mode, enabled by the --word-wrap or -W option, will enable word wrapping and cause the text to move to the next line if the column counter overflows. This is currently not implemented, but is in progress as part of the redraw_column function.
+
+A sample of the program running can be found here:
+![milestone2](milestone2.gif)
