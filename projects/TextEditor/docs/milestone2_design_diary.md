@@ -14,5 +14,5 @@ The most challenging portion of this milestone was getting the program to correc
   
 Column overflow will be handled in one of two ways, with the option being given to the user. The default mode will allow for overflow, and the user will be able to navigate each column individually (similar to how NANO allows the user to do this, but ideally without the jumping). The second mode, enabled by the --word-wrap or -W option, will enable word wrapping and cause the text to move to the next line if the column counter overflows. This is currently not implemented, but is in progress as part of the redraw_column function.
 
-A sample of the program running can be found here:
+A sample of the program running can be found here. This demonstrates command line arguments being parsed and properly executed, namely the hide GUI flag, the help flag, and file loading. It also demonstrates scrolling around a file using the arrow keys, although this functionality is still a work-in-progress, as there is a mismatch between the document vector and the screen. 
 ![milestone2](milestone2.gif)
