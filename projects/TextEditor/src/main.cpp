@@ -13,12 +13,12 @@
 #include <string>
 #include <vector>
 
-#define BACKSPACE_KEY 7
+#define BACKSPACE_KEY 263
 #define RETURN_KEY 10
-#define LEFT_ARROW 4
-#define RIGHT_ARROW 5
-#define UP_ARROW 3
-#define DOWN_ARROW 2
+#define LEFT_ARROW 260
+#define RIGHT_ARROW 261
+#define UP_ARROW 259
+#define DOWN_ARROW 258
 #define TAB_KEY 9
 #define CTRL_O 15
 
@@ -135,7 +135,7 @@ void init_terminal(vector<string> args) {
 
 	WINDOW* main_window = NULL;
 	int num_cols = 0, num_rows = 0, row = 0, col = 0, row_offset=1, col_offset=0;
-	char input = NULL;
+	int input = NULL;
 	const char* t;
 	bool quit = false;
 	bool hide_gui = false, word_wrap = false;
@@ -296,9 +296,9 @@ void init_terminal(vector<string> args) {
 		}
 		else if(input == LEFT_ARROW) {					//Left arrow key
 			if(col > 0) col--;					//Move back one column if possible
-			if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
+			else if(col == 0 && row > 1) {				//If we have a row above us, we can go back one row
 				row--;						//Same behavior as the up arrow key at this point.
-				col = document[row].length();
+				col = document[row-1].length();
 			}
 		}
 		else if(input == DOWN_ARROW) {					//Down arrow key
@@ -310,16 +310,16 @@ void init_terminal(vector<string> args) {
 			}
 		}
 		else if(input == RIGHT_ARROW) {					//Right arrow key
-			if(col < document[row].length()) {
+			if(col < document[row-1].length()) {
 				col++;
 			}
-			if(col >= document[row].length()) {			//If we overflow to the next line
+			else if(col >= document[row-1].length()) {			//If we overflow to the next line
 				row++;
 				col = 0;
 			}
-			else if(col > document[row].length() && row < document.size()) {	//If we're at the very end of the document
+			else if(col > document[row-1].length() && row < document.size()) {	//If we're at the very end of the document
 				row = row;
-				col = document[row].length();
+				col = document[row-1].length();
 			}
 		}
 		else if(input != NULL) {
@@ -331,12 +331,13 @@ void init_terminal(vector<string> args) {
 		}
 		if(!hide_gui) {							//As long as the GUI isn't hidden, display the current row and column at the top-right corner of the screen
 			attron(COLOR_PAIR(1));
-			for(int i=0; i<=file_loc.length(); i++) {
-				mvdelch(0,num_cols-file_loc.length()+i);	//Delete the entire top row
+			for(int i=0; i<num_cols; i++) {
+				mvdelch(0,i);	//Delete the entire top row
 			}
 			file_loc = "Row: " + to_string(row) + " / Column: " + to_string(col) + " ";
-			for(int i=0; i<file_loc.length(); i++) {
-				mvaddch(0,num_cols-file_loc.length()+i,file_loc[i]);
+			mvaddstr(0,0,t);
+			for(int j=0; j<file_loc.length(); j++) {
+				mvaddch(0,num_cols-file_loc.length()+j,file_loc[j]);
 			}
 			attroff(COLOR_PAIR(1));
 		}
