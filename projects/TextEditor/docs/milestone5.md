@@ -8,4 +8,4 @@ Once these functions were implemented and tested, it had to be integrated into t
 
 A gif demonstrating this feature can be seen here: 
 
-![milestone5](https://github.com/abbottjord94/2019-fall-cs211/blob/master/projects/TextEditor/docs/milestone5.gif)
+![trie](milestone5.gif)
